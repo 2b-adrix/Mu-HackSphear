@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaCheckCircle, FaCode, FaUsers, FaUser, FaExternalLinkAlt, FaRocket, FaInfoCircle, FaPhoneAlt, FaEnvelope, FaIdCard, FaGraduationCap } from 'react-icons/fa';
+import { FaArrowLeft, FaCheckCircle, FaCode, FaUsers, FaUser, FaExternalLinkAlt, FaRocket, FaPhoneAlt, FaEnvelope, FaIdCard, FaGraduationCap, FaWhatsapp, FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import ParticleNetwork from './ParticleNetwork';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Official Google Form Configuration
+// Official Google Form & WhatsApp Configuration
 // Form URL: https://docs.google.com/forms/d/e/1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g/viewform
+// WhatsApp Link: https://chat.whatsapp.com/CnmHyFKCjxn10wdvXFH7Vy
 // ─────────────────────────────────────────────────────────────────────────────
 const GOOGLE_FORM_BASE_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g/viewform';
+const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/CnmHyFKCjxn10wdvXFH7Vy';
+
+const STORAGE_REGISTRATIONS_KEY = 'mu_hacksphere_registered_teams';
+const STORAGE_USER_SESSION_KEY = 'mu_hacksphere_user_session';
 
 // Official entry IDs extracted from Google Form structure:
 const ENTRY = {
@@ -26,16 +31,31 @@ const ENTRY = {
     member3Branch:   'entry.2056787770',  // Member-3 Course/Branch and Year (Optional)
 };
 
+interface RegistrationRecord {
+    teamName: string;
+    leaderEmail: string;
+    leaderName: string;
+    timestamp: number;
+    prefilledUrl?: string;
+}
+
+const getInitialSession = (): RegistrationRecord | null => {
+    try {
+        const raw = localStorage.getItem(STORAGE_USER_SESSION_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+};
+
 const RegistrationPage: React.FC = () => {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+    const initialSession = getInitialSession();
 
     // Form fields mapped 1:1 to the Google Form
-    const [teamName, setTeamName] = useState("");
+    const [teamName, setTeamName] = useState(initialSession?.teamName || "");
     const [leaderPhone, setLeaderPhone] = useState("");
-    const [leaderEmail, setLeaderEmail] = useState("");
-    const [leaderName, setLeaderName] = useState("");
+    const [leaderEmail, setLeaderEmail] = useState(initialSession?.leaderEmail || "");
+    const [leaderName, setLeaderName] = useState(initialSession?.leaderName || "");
     const [leaderRoll, setLeaderRoll] = useState("");
     const [leaderBranch, setLeaderBranch] = useState("");
 
@@ -48,8 +68,24 @@ const RegistrationPage: React.FC = () => {
     const [member3Roll, setMember3Roll] = useState("");
     const [member3Branch, setMember3Branch] = useState("");
 
-    const [prefilledUrl, setPrefilledUrl] = useState("");
-    const [submitted, setSubmitted] = useState(false);
+    const [prefilledUrl, setPrefilledUrl] = useState(initialSession?.prefilledUrl || "");
+    const [submitted, setSubmitted] = useState(!!initialSession);
+    const [duplicateError, setDuplicateError] = useState("");
+    const [registeredRecord, setRegisteredRecord] = useState<RegistrationRecord | null>(initialSession);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    // Get all existing registrations from storage
+    const getStoredRegistrations = (): RegistrationRecord[] => {
+        try {
+            const raw = localStorage.getItem(STORAGE_REGISTRATIONS_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    };
 
     // Build the prefilled Google Form URL
     const buildPrefilledUrl = () => {
@@ -77,18 +113,57 @@ const RegistrationPage: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setDuplicateError("");
+
+        const trimmedTeam = teamName.trim().toLowerCase();
+        const trimmedEmail = leaderEmail.trim().toLowerCase();
+
+        // 1. Check duplicate Team Name or Email in existing storage
+        const allRegistrations = getStoredRegistrations();
+
+        const duplicateTeam = allRegistrations.find(
+            r => r.teamName.trim().toLowerCase() === trimmedTeam
+        );
+        if (duplicateTeam) {
+            setDuplicateError(`A team with the name "${teamName.trim()}" is already registered! Each team must have a unique name.`);
+            return;
+        }
+
+        const duplicateEmail = allRegistrations.find(
+            r => r.leaderEmail.trim().toLowerCase() === trimmedEmail
+        );
+        if (duplicateEmail) {
+            setDuplicateError(`The email "${leaderEmail.trim()}" has already been used for registration! Each team leader can register only once.`);
+            return;
+        }
+
+        // 2. Generate prefilled Google Form URL
         const url = buildPrefilledUrl();
         setPrefilledUrl(url);
+
+        // 3. Save new registration record to localStorage so they cannot re-fill with same team name/email
+        const newRecord: RegistrationRecord = {
+            teamName: teamName.trim(),
+            leaderEmail: leaderEmail.trim(),
+            leaderName: leaderName.trim(),
+            timestamp: Date.now(),
+            prefilledUrl: url,
+        };
+
+        try {
+            allRegistrations.push(newRecord);
+            localStorage.setItem(STORAGE_REGISTRATIONS_KEY, JSON.stringify(allRegistrations));
+            localStorage.setItem(STORAGE_USER_SESSION_KEY, JSON.stringify(newRecord));
+        } catch (err) {
+            console.error("Error writing to localStorage:", err);
+        }
+
+        setRegisteredRecord(newRecord);
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Open the prefilled Google Form in a new tab so the student can submit directly
-        // with their authenticated Google account to be recorded in the response sheet.
-        const win = window.open(url, '_blank');
-        if (!win) {
-            // Popup blocker prevented auto-open, user can click the button
-            console.log("Popup blocked; fallback button provided.");
-        }
+        // 4. Open the prefilled Google Form in a new tab
+        window.open(url, '_blank');
     };
 
     return (
@@ -140,34 +215,7 @@ const RegistrationPage: React.FC = () => {
                     </p>
                 </motion.div>
 
-                {/* Important Notice Banner */}
-                <div className="bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-purple-950/70 border border-cyan-500/30 rounded-2xl p-4 sm:p-5 mb-8 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                        <FaInfoCircle className="text-cyan-400 text-xl mt-0.5 shrink-0" />
-                        <div>
-                            <h4 className="text-sm font-exo font-bold text-cyan-300">
-                                Official University Google Form Sync
-                            </h4>
-                            <p className="text-xs text-gray-300 font-montserrat mt-1 leading-relaxed">
-                                Fill out your details below to auto-fill the official form, or open the form directly. 
-                                <span className="text-yellow-300 font-semibold block mt-1">
-                                    ★ Rule: Each team should include at least one 1st-year student.
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <a
-                        href={GOOGLE_FORM_BASE_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-cyan-500 text-slate-950 rounded-xl font-montserrat font-bold text-xs hover:bg-cyan-400 transition-colors shadow-md"
-                    >
-                        <span>Fill Directly in Google Form</span>
-                        <FaExternalLinkAlt className="text-[10px]" />
-                    </a>
-                </div>
-
-                {/* Success Confirmation / Pre-fill Bridge Card */}
+                {/* Success Confirmation / WhatsApp Group Card */}
                 <AnimatePresence>
                     {submitted ? (
                         <motion.div
@@ -176,36 +224,96 @@ const RegistrationPage: React.FC = () => {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="bg-slate-900/95 backdrop-blur-2xl border-2 border-cyan-400/50 rounded-3xl p-6 sm:p-10 text-center shadow-2xl shadow-cyan-950/80 mb-12"
                         >
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto mb-5 text-3xl sm:text-4xl text-cyan-300 shadow-lg shadow-cyan-500/20">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-500/10 border border-emerald-400/40 flex items-center justify-center mx-auto mb-5 text-3xl sm:text-4xl text-emerald-300 shadow-lg shadow-emerald-500/20">
                                 <FaCheckCircle />
                             </div>
                             <h2 className="text-2xl sm:text-4xl font-exo font-black text-white mb-2">
-                                DETAILS PRE-FILLED!
+                                REGISTRATION RECORDED!
                             </h2>
-                            <p className="text-sm sm:text-base font-montserrat text-cyan-300 font-semibold mb-2">
-                                Team: <span className="text-white font-bold">{teamName || "Your Team"}</span>
+                            <p className="text-sm sm:text-base font-montserrat text-cyan-300 font-semibold mb-6">
+                                Team: <span className="text-white font-bold">{registeredRecord?.teamName || teamName || "Your Team"}</span> • Leader: <span className="text-white font-bold">{registeredRecord?.leaderName || leaderName}</span>
                             </p>
-                            <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-xl p-4 max-w-xl mx-auto mb-6 text-left">
+
+                            {/* ═══════════════════════════════════════════════════ */}
+                            {/* OFFICIAL WHATSAPP GROUP INVITATION CARD */}
+                            {/* ═══════════════════════════════════════════════════ */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-gradient-to-br from-emerald-950/90 via-slate-900/95 to-teal-950/90 border-2 border-emerald-400/60 rounded-3xl p-6 sm:p-8 text-center shadow-2xl shadow-emerald-950/60 relative overflow-hidden mb-8"
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                                
+                                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/20 border border-emerald-500/40 rounded-full text-emerald-300 font-mono text-xs font-bold uppercase mb-4">
+                                    <FaWhatsapp className="text-base text-emerald-400" />
+                                    <span>Mandatory Step</span>
+                                </div>
+
+                                <h3 className="text-xl sm:text-3xl font-exo font-black text-white mb-2">
+                                    Join Participants WhatsApp Group
+                                </h3>
+                                
+                                <p className="text-xs sm:text-sm text-gray-200 font-montserrat max-w-lg mx-auto mb-6 leading-relaxed">
+                                    All official hackathon announcements, 8-hour sprint problem statements, lab seating, mentor allocations, and timeline reminders will be shared exclusively in this WhatsApp group.
+                                </p>
+
+                                <a
+                                    href={WHATSAPP_GROUP_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-montserrat font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-emerald-500/30 hover:scale-105 transition-all duration-300"
+                                >
+                                    <FaWhatsapp className="text-2xl text-slate-950" />
+                                    <span>Join WhatsApp Group Now</span>
+                                    <FaExternalLinkAlt className="text-xs text-slate-950" />
+                                </a>
+
+                                <p className="text-[11px] font-mono text-emerald-400/80 mt-3 break-all">
+                                    {WHATSAPP_GROUP_URL}
+                                </p>
+                            </motion.div>
+
+                            {/* Google Form Final Submission Banner */}
+                            <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-2xl p-4 max-w-xl mx-auto mb-6 text-left">
                                 <p className="text-xs sm:text-sm text-yellow-200 font-montserrat leading-relaxed">
-                                    <strong>Final Step:</strong> A new tab has been opened with all your information pre-filled in the official Mewar University Google Form. Simply click <strong>"Submit"</strong> on the Google Form to save your team directly into the official Google Sheet!
+                                    <strong>Important:</strong> Your details were pre-filled into the official Google Form in a new tab. If the tab did not open, click the button below to submit your pre-filled form into the official Google Sheet:
                                 </p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
                                 <a
-                                    href={prefilledUrl}
+                                    href={prefilledUrl || buildPrefilledUrl()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 text-slate-950 font-montserrat font-black text-sm rounded-xl shadow-xl shadow-cyan-500/25 hover:scale-105 transition-all"
+                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-montserrat font-bold text-sm rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 transition-all"
                                 >
-                                    <span>Click Here to Submit on Google Form</span>
+                                    <span>Re-open Pre-filled Google Form</span>
                                     <FaExternalLinkAlt className="text-xs" />
                                 </a>
+
                                 <button
-                                    onClick={() => setSubmitted(false)}
+                                    onClick={() => {
+                                        // Allow entering a fresh team if user explicitly clicks, but storage prevents re-using same team name/email
+                                        setSubmitted(false);
+                                        setTeamName("");
+                                        setLeaderEmail("");
+                                        setLeaderPhone("");
+                                        setLeaderName("");
+                                        setLeaderRoll("");
+                                        setLeaderBranch("");
+                                        setMember2Name("");
+                                        setMember2Roll("");
+                                        setMember2Branch("");
+                                        setMember3Name("");
+                                        setMember3Roll("");
+                                        setMember3Branch("");
+                                        setIncludeMember3(false);
+                                        setDuplicateError("");
+                                    }}
                                     className="w-full sm:w-auto px-6 py-3.5 bg-slate-800 text-gray-300 font-montserrat font-semibold text-xs sm:text-sm rounded-xl hover:bg-slate-700 transition-colors"
                                 >
-                                    Edit Details / Re-enter
+                                    Register Another Team
                                 </button>
                             </div>
 
@@ -230,6 +338,21 @@ const RegistrationPage: React.FC = () => {
                             onSubmit={handleSubmit}
                             className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8"
                         >
+                            {/* Duplicate Warning Alert */}
+                            {duplicateError && (
+                                <div className="p-4 rounded-2xl bg-red-950/80 border-2 border-red-500/60 flex items-start gap-3 text-red-200">
+                                    <FaExclamationTriangle className="text-red-400 text-xl shrink-0 mt-0.5" />
+                                    <div>
+                                        <h4 className="text-sm font-exo font-bold text-red-300 mb-1">
+                                            Duplicate Registration Blocked
+                                        </h4>
+                                        <p className="text-xs font-montserrat leading-relaxed">
+                                            {duplicateError}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Section 1: Team Info */}
                             <div>
                                 <h3 className="font-exo font-bold text-lg text-cyan-300 mb-4 flex items-center gap-2 pb-2 border-b border-slate-800">
@@ -245,10 +368,16 @@ const RegistrationPage: React.FC = () => {
                                         type="text"
                                         required
                                         value={teamName}
-                                        onChange={(e) => setTeamName(e.target.value)}
+                                        onChange={(e) => {
+                                            setTeamName(e.target.value);
+                                            if (duplicateError) setDuplicateError("");
+                                        }}
                                         placeholder="e.g., CodeKnights, BinaryBeasts"
                                         className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors placeholder:text-gray-600"
                                     />
+                                    <span className="text-[11px] text-gray-400 font-montserrat mt-1 block">
+                                        Must be unique across all participating teams.
+                                    </span>
                                 </div>
                             </div>
 
@@ -298,10 +427,16 @@ const RegistrationPage: React.FC = () => {
                                             type="email"
                                             required
                                             value={leaderEmail}
-                                            onChange={(e) => setLeaderEmail(e.target.value)}
+                                            onChange={(e) => {
+                                                setLeaderEmail(e.target.value);
+                                                if (duplicateError) setDuplicateError("");
+                                            }}
                                             placeholder="leader@mewaruniversity.org"
                                             className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors placeholder:text-gray-600"
                                         />
+                                        <span className="text-[11px] text-gray-400 font-montserrat mt-1 block">
+                                            Only one registration permitted per leader email.
+                                        </span>
                                     </div>
 
                                     <div>
@@ -457,14 +592,14 @@ const RegistrationPage: React.FC = () => {
                             {/* Submit Button */}
                             <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <p className="text-xs text-gray-400 font-montserrat text-center sm:text-left">
-                                    Submitting opens the official Google Form with all details pre-filled for instant verification and sync to the response sheet.
+                                    Submitting locks your Team Name &amp; Email, pre-fills the official Google Form, and directs you to the official WhatsApp Group.
                                 </p>
                                 <button
                                     type="submit"
                                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-montserrat font-black text-sm sm:text-base rounded-xl shadow-xl shadow-cyan-500/25 hover:scale-105 transition-all duration-300 cursor-pointer"
                                 >
                                     <FaRocket />
-                                    <span>Proceed &amp; Submit to Google Sheet</span>
+                                    <span>Complete Registration &amp; Join Group</span>
                                 </button>
                             </div>
                         </motion.form>
