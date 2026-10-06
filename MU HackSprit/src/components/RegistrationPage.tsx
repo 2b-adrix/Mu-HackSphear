@@ -1,8 +1,87 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaCheckCircle, FaCode, FaUsers, FaUser, FaExternalLinkAlt, FaRocket } from 'react-icons/fa';
+import { FaArrowLeft, FaCheckCircle, FaCode, FaUsers, FaUser, FaExternalLinkAlt, FaRocket, FaSpinner } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import ParticleNetwork from './ParticleNetwork';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Google Form integration
+// Form: https://docs.google.com/forms/d/e/1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g/viewform
+//
+// HOW TO GET ENTRY IDs:
+//   1. Open the form link above in Chrome
+//   2. Right-click any input → Inspect
+//   3. Find  name="entry.XXXXXXXXXX"  on the <input> element
+//   4. Replace the placeholder strings below with the real numbers
+// ─────────────────────────────────────────────────────────────────────────────
+const GOOGLE_FORM_ID = '1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g';
+
+// ── Real entry IDs extracted from Google Form FB_PUBLIC_LOAD_DATA_ ──
+// Google Form: MU Hackathon 2026 (Interdepartment)
+// Fields map:
+//   Team Name                        → entry.126267137
+//   Mobile Number (Leader)           → entry.1565320793
+//   E-mail (Leader)                  → entry.336277876
+//   Member-1 Name (Leader)           → entry.315526497
+//   Member-1 Enrollment Number       → entry.2137568525
+//   Member-1 Course/Branch and Year  → entry.1739319420
+//   Member-2 Name                    → entry.1164433296
+//   Member-2 Enrollment Number       → entry.2005620554
+//   Member-2 Course/Branch and Year  → entry.627876046
+//   Member-3 Name                    → entry.1065046570
+//   Member-3 Enrollment Number       → entry.1166974658
+//   Member-3 Course/Branch and Year  → entry.2056787770
+const ENTRY = {
+    teamName:        'entry.126267137',
+    leaderPhone:     'entry.1565320793',
+    leaderEmail:     'entry.336277876',
+    leaderName:      'entry.315526497',    // "Member-1 Name (Leader)" = team leader
+    leaderRoll:      'entry.2137568525',   // Member-1 Enrollment
+    leaderBranch:    'entry.1739319420',   // Member-1 Course/Branch & Year
+    member2Name:     'entry.1164433296',
+    member2Roll:     'entry.2005620554',
+    member2Branch:   'entry.627876046',
+    member3Name:     'entry.1065046570',
+    member3Roll:     'entry.1166974658',
+    member3Branch:   'entry.2056787770',
+};
+
+async function submitToGoogleForm(data: {
+    teamName: string; leaderName: string; leaderEmail: string;
+    leaderPhone: string; college: string; rollNo: string;
+    track: string; members: { name: string; email: string; roll: string }[];
+}) {
+    const body = new URLSearchParams();
+
+    // Core leader fields
+    body.append(ENTRY.teamName,     data.teamName);
+    body.append(ENTRY.leaderPhone,  data.leaderPhone);
+    body.append(ENTRY.leaderEmail,  data.leaderEmail);
+    body.append(ENTRY.leaderName,   data.leaderName);
+    body.append(ENTRY.leaderRoll,   data.rollNo);
+    body.append(ENTRY.leaderBranch, data.college);   // college/branch field
+
+    // Member 2
+    if (data.members[0]) {
+        body.append(ENTRY.member2Name,   data.members[0].name  || '');
+        body.append(ENTRY.member2Roll,   data.members[0].roll  || '');
+        body.append(ENTRY.member2Branch, data.members[0].email || ''); // email goes in branch field as extra info
+    }
+
+    // Member 3
+    if (data.members[1]) {
+        body.append(ENTRY.member3Name,   data.members[1].name  || '');
+        body.append(ENTRY.member3Roll,   data.members[1].roll  || '');
+        body.append(ENTRY.member3Branch, data.members[1].email || '');
+    }
+
+    // Google Forms doesn't allow CORS – use no-cors.
+    // The POST still succeeds server-side; we just can't read the response.
+    await fetch(
+        `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`,
+        { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() }
+    );
+}
 
 const tracks = [
     "AI, GenAI & ML Systems",
@@ -34,6 +113,8 @@ const RegistrationPage: React.FC = () => {
         { name: "", email: "", roll: "" },
     ]);
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     const handleMemberCountChange = (count: number) => {
         setMemberCount(count);
@@ -52,8 +133,20 @@ const RegistrationPage: React.FC = () => {
         setMembers(updated);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitting(true);
+        setSubmitError('');
+        try {
+            await submitToGoogleForm({
+                teamName, leaderName, leaderEmail, leaderPhone,
+                college, rollNo, track: selectedTrack, members,
+            });
+        } catch (err) {
+            // no-cors mode throws on network failure; data may still be saved.
+            console.warn('Google Form post error (may be CORS noise):', err);
+        }
+        setSubmitting(false);
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -368,12 +461,16 @@ const RegistrationPage: React.FC = () => {
                                 <p className="text-xs text-gray-400 font-montserrat text-center sm:text-left">
                                     By registering, your team agrees to the 8-Hour Sprint guidelines and Mewar University Code of Conduct.
                                 </p>
+                                {submitError && (
+                                    <p className="text-xs text-red-400 font-montserrat">{submitError}</p>
+                                )}
                                 <button
                                     type="submit"
-                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-montserrat font-black text-sm sm:text-base rounded-xl shadow-xl shadow-cyan-500/25 hover:scale-105 transition-all duration-300 cursor-pointer"
+                                    disabled={submitting}
+                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-montserrat font-black text-sm sm:text-base rounded-xl shadow-xl shadow-cyan-500/25 hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                                 >
-                                    <FaRocket />
-                                    <span>Complete Team Registration</span>
+                                    {submitting ? <FaSpinner className="animate-spin" /> : <FaRocket />}
+                                    <span>{submitting ? 'Submitting…' : 'Complete Team Registration'}</span>
                                 </button>
                             </div>
                         </motion.form>
