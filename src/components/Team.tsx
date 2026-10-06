@@ -1,4 +1,3 @@
-// React import removed
 
 import { motion } from "framer-motion";
 import { useSectionInView } from "../hooks/useSectionInView";
