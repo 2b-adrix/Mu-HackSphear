@@ -4,33 +4,10 @@ import { FaArrowLeft, FaCheckCircle, FaCode, FaUsers, FaUser, FaExternalLinkAlt,
 import { Link } from 'react-router-dom';
 import ParticleNetwork from './ParticleNetwork';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Google Form integration
-// Form: https://docs.google.com/forms/d/e/1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g/viewform
-//
-// HOW TO GET ENTRY IDs:
-//   1. Open the form link above in Chrome
-//   2. Right-click any input → Inspect
-//   3. Find  name="entry.XXXXXXXXXX"  on the <input> element
-//   4. Replace the placeholder strings below with the real numbers
-// ─────────────────────────────────────────────────────────────────────────────
+
 const GOOGLE_FORM_ID = '1FAIpQLScn0bpxbmJSNR04XFvlZfOafHxUJVAbUAtNjylNikYVdjkn1g';
 
-// ── Real entry IDs extracted from Google Form FB_PUBLIC_LOAD_DATA_ ──
-// Google Form: MU Hackathon 2026 (Interdepartment)
-// Fields map:
-//   Team Name                        → entry.126267137
-//   Mobile Number (Leader)           → entry.1565320793
-//   E-mail (Leader)                  → entry.336277876
-//   Member-1 Name (Leader)           → entry.315526497
-//   Member-1 Enrollment Number       → entry.2137568525
-//   Member-1 Course/Branch and Year  → entry.1739319420
-//   Member-2 Name                    → entry.1164433296
-//   Member-2 Enrollment Number       → entry.2005620554
-//   Member-2 Course/Branch and Year  → entry.627876046
-//   Member-3 Name                    → entry.1065046570
-//   Member-3 Enrollment Number       → entry.1166974658
-//   Member-3 Course/Branch and Year  → entry.2056787770
+
 const ENTRY = {
     teamName:        'entry.126267137',
     leaderPhone:     'entry.1565320793',

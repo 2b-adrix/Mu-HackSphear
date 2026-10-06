@@ -1,6 +1,6 @@
 # MU HackSphear Hackathon Website
 
-Welcome to the official repository for the **TechnoTarang** Hackathon Website! This project is the front-end application built to showcase the event details, themes, timeline, prizes, sponsors, and registration for the TechnoTarang hackathon.
+Welcome to the official repository for the **Mu HaackSphear** Hackathon Website! This project is the front-end application built to showcase the event details, themes, timeline, prizes, sponsors, and registration for the TechnoTarang hackathon.
 
 ## 🚀 Features
 
