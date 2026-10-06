@@ -1,6 +1,25 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
+// Helper component for countdown items
+const CountdownItem = ({ value, label }: { value: number; label: string }) => (
+    <div className="flex flex-col items-center mx-4 my-4 md:my-0">
+        <div className="relative bg-dark-bg/50 border border-neon-green/30 rounded-lg p-6 min-w-[100px] md:min-w-[120px] backdrop-blur-md shadow-[0_0_15px_rgba(0,255,136,0.1)]">
+            <span className="text-4xl md:text-6xl font-orbitron font-bold text-white block text-center tabular-nums text-glow">
+                {String(value).padStart(2, "0")}
+            </span>
+            {/* Decorative corners */}
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-neon-green"></div>
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-neon-green"></div>
+            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-neon-green"></div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-neon-green"></div>
+        </div>
+        <span className="mt-4 text-cyber-blue font-exo uppercase tracking-widest text-xs md:text-sm">
+            {label}
+        </span>
+    </div>
+);
+
 const Countdown = () => {
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
@@ -31,25 +50,6 @@ const Countdown = () => {
 
         return () => clearInterval(interval);
     }, []);
-
-    // Helper component for countdown items
-    const CountdownItem = ({ value, label }: { value: number; label: string }) => (
-        <div className="flex flex-col items-center mx-4 my-4 md:my-0">
-            <div className="relative bg-dark-bg/50 border border-neon-green/30 rounded-lg p-6 min-w-[100px] md:min-w-[120px] backdrop-blur-md shadow-[0_0_15px_rgba(0,255,136,0.1)]">
-                <span className="text-4xl md:text-6xl font-orbitron font-bold text-white block text-center tabular-nums text-glow">
-                    {String(value).padStart(2, "0")}
-                </span>
-                {/* Decorative corners */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-neon-green"></div>
-                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-neon-green"></div>
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-neon-green"></div>
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-neon-green"></div>
-            </div>
-            <span className="mt-4 text-cyber-blue font-exo uppercase tracking-widest text-xs md:text-sm">
-                {label}
-            </span>
-        </div>
-    );
 
     return (
         <section className="py-20 bg-dark-bg text-center relative overflow-hidden">
