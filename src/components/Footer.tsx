@@ -109,7 +109,7 @@ const Footer = () => {
                         © 2026 MU HackSphere • Department of Computer Science &amp; Engineering, Mewar University. All Rights Reserved.
                     </p>
                     <p className="text-gray-400 font-mono text-xs">
-                        Sprint Date: <strong className="text-cyan-400">15th October 2026</strong>
+                        Sprint Date: <strong className="text-cyan-400">17th October 2026</strong>
                     </p>
                 </div>
             </div>

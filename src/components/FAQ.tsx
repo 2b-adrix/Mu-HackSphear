@@ -22,7 +22,7 @@ const FAQ = () => {
         },
         {
             question: "When and where is the event taking place?",
-            answer: "The hackathon takes place on 15th October 2026 from 08:30 AM to 06:30 PM IST at Mewar University Campus, NH-79 Gangrar, Chittorgarh, Rajasthan. Registration closes on 12th October 2026.",
+            answer: "The hackathon takes place on 17th October 2026 from 08:30 AM to 06:30 PM IST at Mewar University Campus, NH-79 Gangrar, Chittorgarh, Rajasthan. Registration closes on 15th October 2026.",
         },
         {
             question: "Will refreshments and meals be provided?",

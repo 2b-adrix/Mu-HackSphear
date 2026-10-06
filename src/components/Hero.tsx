@@ -8,8 +8,8 @@ const Hero = () => {
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-    // Countdown to October 12, 2026 23:59:59 IST (Registration Deadline)
-    const targetDate = new Date("2026-10-12T23:59:59+05:30").getTime();
+    // Countdown to October 15, 2026 23:59:59 IST (Registration Deadline)
+    const targetDate = new Date("2026-10-15T23:59:59+05:30").getTime();
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -104,14 +104,14 @@ const Hero = () => {
                         className="inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 bg-gradient-to-r from-red-950/60 to-purple-950/60 border border-red-500/40 rounded-full text-red-300 font-montserrat font-bold text-xs md:text-sm shadow-lg mb-6 backdrop-blur-md"
                     >
                         <FaClock className="text-red-400 animate-spin" style={{ animationDuration: "6s" }} />
-                        <span>Registration Deadline: <strong className="text-white">12th October 2026</strong></span>
+                        <span>Registration Deadline: <strong className="text-white">15th October 2026</strong></span>
                     </motion.div>
 
                     {/* Event Details Boxes (Date & Venue) */}
                     <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 mb-7 md:mb-9">
                         {/* Event Date Box */}
                         <a
-                            href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MU+HackSphere+2026&dates=20261015T033000Z/20261015T123000Z&details=MU+HackSphere+2026+-+Curated+8-Hour+Sprint+National+Hackathon+at+Mewar+University&location=Mewar+University,+Gangrar,+Chittorgarh,+Rajasthan"
+                            href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MU+HackSphere+2026&dates=20261017T033000Z/20261017T123000Z&details=MU+HackSphere+2026+-+Curated+8-Hour+Sprint+National+Hackathon+at+Mewar+University&location=Mewar+University,+Gangrar,+Chittorgarh,+Rajasthan"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-3 px-5 py-3 bg-slate-900/80 border border-cyan-500/30 rounded-2xl hover:border-cyan-400 hover:bg-slate-800/80 hover:shadow-lg hover:shadow-cyan-500/10 transition-all group backdrop-blur-md text-left"
@@ -121,7 +121,7 @@ const Hero = () => {
                             </div>
                             <div>
                                 <span className="block text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-wider">Sprint Date</span>
-                                <span className="font-exo font-extrabold text-cyan-300 text-xs sm:text-sm md:text-base">15th October 2026</span>
+                                <span className="font-exo font-extrabold text-cyan-300 text-xs sm:text-sm md:text-base">17th October 2026</span>
                                 <span className="block text-[10px] text-gray-400 font-mono">09:00 AM – 05:00 PM IST (8 Hours)</span>
                             </div>
                         </a>

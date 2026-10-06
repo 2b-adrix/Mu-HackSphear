@@ -211,7 +211,7 @@ const RegistrationPage: React.FC = () => {
                         TEAM REGISTRATION
                     </h1>
                     <p className="text-xs sm:text-sm md:text-base text-gray-300 font-montserrat max-w-xl mx-auto">
-                        Official registration for <strong>MU HackSphere 2026</strong> (Interdepartmental 8-Hour Sprint). All registrations are directly recorded in the official Department of CSE Google Sheet.
+                        Official registration for <strong>MU HackSphere 2026</strong> (Interdepartmental 8-Hour Sprint on <strong>17th October 2026</strong>). Registration closes on <strong>15th October 2026</strong>.
                     </p>
                 </motion.div>
 

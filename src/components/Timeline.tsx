@@ -23,13 +23,13 @@ const Timeline = () => {
             desc: "Register your team (2–4 members) and select your preferred track.",
         },
         {
-            date: "12th October 2026 (11:59 PM)",
+            date: "15th October 2026 (11:59 PM)",
             badge: "Deadline",
             title: "Registration Closes",
             desc: "Final deadline for team registrations and problem statement pre-selection.",
         },
         {
-            date: "15th October 2026 (08:30 AM – 06:30 PM)",
+            date: "17th October 2026 (08:30 AM – 06:30 PM)",
             badge: "Main Event",
             title: "8-Hour Sprint Hackathon Day",
             desc: "The intense 8-hour sprint on campus at Mewar University.",
@@ -68,7 +68,7 @@ const Timeline = () => {
                         8-HOUR SPRINT TIMELINE
                     </h2>
                     <p className="text-sm md:text-base text-gray-300 font-montserrat max-w-xl mx-auto">
-                        Precision, stamina, and execution: here is how the 8-hour sprint unfolds on 15th October 2026.
+                        Precision, stamina, and execution: here is how the 8-hour sprint unfolds on 17th October 2026.
                     </p>
                 </motion.div>
 
@@ -115,7 +115,7 @@ const Timeline = () => {
                                     <div className="mt-6 pt-6 border-t border-slate-800/80 space-y-2.5">
                                         <div className="flex items-center gap-2 mb-4 text-xs font-mono font-bold uppercase text-cyan-400 tracking-wider">
                                             <FaBolt />
-                                            <span>Full 8-Hour Schedule (15th Oct, 2026)</span>
+                                            <span>Full 8-Hour Schedule (17th Oct, 2026)</span>
                                         </div>
                                         <div className="grid grid-cols-1 gap-2.5">
                                             {phase.schedule.map((item, i) => (
